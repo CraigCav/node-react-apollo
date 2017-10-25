@@ -4,6 +4,7 @@ import fs from 'fs';
 import { ApolloClient, createNetworkInterface, ApolloProvider, renderToStringWithData } from 'react-apollo';
 import ReactDOM from 'react-dom/server';
 import App from '../src/app';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 import 'isomorphic-fetch';
 
 const networkInterface = createNetworkInterface({
@@ -15,7 +16,9 @@ const networkInterface = createNetworkInterface({
 
 const client = new ApolloClient({
   networkInterface,
-  dataIdFromObject: o => o.id
+  ssrMode: true,
+  dataIdFromObject: o => o.id,
+  cache: new InMemoryCache()
 });
 
 const app = (
@@ -26,6 +29,7 @@ const app = (
 
 export default (req, res) => {
   const filePath = path.resolve(__dirname, '..', 'public', 'index.html');
+  const { cache } = client;
 
   fs.readFile(filePath, 'utf8', (err, htmlData) => {
     if (err) {
@@ -35,7 +39,16 @@ export default (req, res) => {
 
     renderToStringWithData(app).then(content => {
       res.status(200);
-      res.send(htmlData.replace('{{SSR}}', content));
+      res.send(
+        htmlData
+          .replace(/%PUBLIC_URL%/g, ``)
+          .replace(`<div id="root"></div>`, `<div id="root">${content}</div>`)
+          .replace(
+            `</body>`,
+            `<script charSet="UTF-8">window.__APOLLO_STATE__=${JSON.stringify(cache.extract())};</script></body>`
+          )
+          .replace(`</body>`, `<script src="/static/bundle.js" charSet="UTF-8" /></body>`)
+      );
       res.end();
     });
   });
