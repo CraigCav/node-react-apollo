@@ -21,8 +21,6 @@ app.use(
   })
 );
 
-app.use(require('./server-render-middleware').default);
-
 app.listen(4000, () => {
   console.log('GraphQL server listening on port 4000');
 });
