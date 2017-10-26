@@ -11,7 +11,9 @@ import registerServiceWorker from './registerServiceWorker';
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: createHttpLink({ uri: '/graphql' }),
-  dataIdFromObject: o => o.id
+  dataIdFromObject: o => o.id,
+  initialState: window.__APOLLO_STATE__,
+  ssrMode: true
 });
 
 const Root = () => {
@@ -22,5 +24,5 @@ const Root = () => {
   );
 };
 
-ReactDOM.render(<Root />, document.getElementById('root'));
+ReactDOM.hydrate(<Root />, document.getElementById('root'));
 registerServiceWorker();

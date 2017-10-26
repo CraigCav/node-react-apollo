@@ -30,11 +30,9 @@ const client = new ApolloClient({
   link: createHttpLink({ uri: 'http://localhost:4000/graphql' })
 });
 
-app.use('/css/app.css', express.static(__dirname + '/src/app.css'));
-app.use('/css/index.css', express.static(__dirname + '/src/index.css'));
-app.use('/static', proxy({ target: 'http://localhost:4002' }));
+app.use('/css', express.static('src'));
 
-app.use((req, res) => {
+app.get('/', (req, res) => {
   const filePath = path.resolve(__dirname, 'public', 'index.html');
   const { cache } = client;
 
@@ -55,16 +53,18 @@ app.use((req, res) => {
           .replace(`<div id="root"></div>`, `<div id="root">${content}</div>`)
           .replace(
             `</body>`,
-            `<script charSet="UTF-8">window.__APOLLO_STATE__=${JSON.stringify(cache.extract())};</script></body>`
+            `<script charSet="UTF-8">window.__APOLLO_STATE__=${JSON.stringify(cache.extract())};</script>\n</body>`
           )
-          .replace(`</body>`, `<script src="/static/js/bundle.js" charSet="UTF-8" /></body>`)
-          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="css/app.css"></head>`)
-          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="css/index.css"></head>`)
+          .replace(`</body>`, `<script src="/static/js/bundle.js" charSet="UTF-8"></script>\n</body>`)
+          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="/css/app.css">\n</head>`)
+          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="/css/index.css">\n</head>`)
       );
       res.end();
     });
   });
 });
+
+app.use(proxy({ target: 'http://localhost:4002' }));
 
 app.listen(3000, () => {
   console.log('Web server listening on port 3000');
