@@ -28,6 +28,7 @@
     "eject": "react-scripts eject",
     "json:server": "json-server --watch db.json --port 4001",
     "graphql:server": "node graphql/server.js",
+    "webdev:server": "PORT=4002 react-scripts start",
     "web:server": "NODE_ENV=development node server"
   },
   "proxy": {

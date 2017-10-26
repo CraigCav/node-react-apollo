@@ -8,6 +8,8 @@ const { createHttpLink } = require('apollo-link-http');
 const { InMemoryCache } = require('apollo-cache-inmemory');
 const { ApolloProvider, renderToStringWithData } = require('react-apollo');
 const ReactDOM = require('react-dom/server');
+const proxy = require('http-proxy-middleware');
+
 require('isomorphic-fetch');
 
 // need to ignore styles for server render 😞
@@ -27,6 +29,10 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: createHttpLink({ uri: 'http://localhost:4000/graphql' })
 });
+
+app.use('/css/app.css', express.static(__dirname + '/src/app.css'));
+app.use('/css/index.css', express.static(__dirname + '/src/index.css'));
+app.use('/static', proxy({ target: 'http://localhost:4002' }));
 
 app.use((req, res) => {
   const filePath = path.resolve(__dirname, 'public', 'index.html');
@@ -51,7 +57,9 @@ app.use((req, res) => {
             `</body>`,
             `<script charSet="UTF-8">window.__APOLLO_STATE__=${JSON.stringify(cache.extract())};</script></body>`
           )
-          .replace(`</body>`, `<script src="/static/bundle.js" charSet="UTF-8" /></body>`)
+          .replace(`</body>`, `<script src="/static/js/bundle.js" charSet="UTF-8" /></body>`)
+          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="css/app.css"></head>`)
+          .replace(`</head>`, `<link rel="stylesheet" media="screen" href="css/index.css"></head>`)
       );
       res.end();
     });

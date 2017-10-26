@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import PropTypes from 'prop-types';
+import './app.css';
 
 class App extends Component {
   static propTypes = {
